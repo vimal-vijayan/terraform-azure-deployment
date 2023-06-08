@@ -1,0 +1,34 @@
+name: "Terraform deploy"
+variables:
+ group: "dev"
+trigger:
+- main
+
+pool: 
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Dev
+  jobs:
+  - job: terraform_deploy
+    template: ./steps/terraform-deploy.yaml
+    parameters:
+      workingDirectory: "terraform"
+      varfilePath: "$(System.DefaultWorkingDirectory)/terraform/dev/"
+
+- stage: Stage
+  jobs:
+  - job: terraform_deploy
+    template: ./steps/terraform-deploy.yaml
+    parameters:
+      workingDirectory: "terraform"
+      varfilePath: "$(System.DefaultWorkingDirectory)/terraform/stage/"
+
+
+- stage: Prod
+  jobs:
+  - job: terraform_deploy
+    template: ./steps/terraform-deploy.yaml
+    parameters:
+      workingDirectory: "terraform"
+      varfilePath: "$(System.DefaultWorkingDirectory)/terraform/prod/"

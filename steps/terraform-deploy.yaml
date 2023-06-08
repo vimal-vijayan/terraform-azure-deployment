@@ -1,0 +1,35 @@
+parameters:
+ workingDirectory:
+ varfilePath:
+
+steps:
+- bash: |
+    terraform -version
+    terraform init \
+      -backend-config="storage_account_name=$TF_STATE_BLOB_ACCOUNT_NAME" \
+      -backend-config="container_name=$TF_STATE_BLOB_CONTAINER_NAME" \
+      -backend-config="key=$TF_STATE_BLOB_FILE" \
+      -backend-config="sas_token=$TF_STATE_BLOB_SAS_TOKEN"
+  displayName: Terraform init
+  name: terraform_init
+
+- bash: |
+    terraform plan -var-file=${{ parameters.varfilePath }}
+  name: terraformPlan
+  displayName: Terraform Plan
+  workingDirectory: ${{ parameters.workingDirectory }}
+  env:
+    ARM_SUBSCRIPTION_ID:        $(kv-arm-subscription-id)
+    ARM_CLIENT_ID:              $(kv-arm-client-id)
+    ARM_CLIENT_SECRET:          $(kv-arm-client-secret)
+    ARM_TENANT_ID:              $(kv-arm-tenant-id)
+
+- bash: terraform apply -auto-approve ${{ parameters.extraFlags }}
+  displayName: Terraform Apply
+  enabled: true
+  workingDirectory:  ${{ parameters.workingDirectory }}
+  env:
+    ARM_SUBSCRIPTION_ID:        $(kv-arm-subscription-id)
+    ARM_CLIENT_ID:              $(kv-arm-client-id)
+    ARM_CLIENT_SECRET:          $(kv-arm-client-secret)
+    ARM_TENANT_ID:              $(kv-arm-tenant-id)
